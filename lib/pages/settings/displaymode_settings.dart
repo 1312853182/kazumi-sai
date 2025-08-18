@@ -64,12 +64,10 @@ class _SetDisplayModeState extends State<SetDisplayMode> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('屏幕帧率设置')),
-      body: Center(
-        child: SizedBox(
-          width: (MediaQuery.of(context).size.width > 1000) ? 1000 : null,
-          child: (modes.isEmpty)
+      body: (modes.isEmpty)
               ? const CircularProgressIndicator()
               : SettingsList(
+              maxWidth: 1000,
                   sections: [
                     SettingsSection(
                       title: const Text('没有生效? 重启app试试'),
@@ -93,8 +91,6 @@ class _SetDisplayModeState extends State<SetDisplayMode> {
                     ),
                   ],
                 ),
-        ),
-      ),
     );
   }
 }

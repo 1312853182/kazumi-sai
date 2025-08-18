@@ -16,7 +16,6 @@ import 'package:kazumi/utils/storage.dart';
 import 'package:logger/logger.dart';
 import 'package:kazumi/utils/logger.dart';
 import 'package:kazumi/utils/utils.dart';
-import 'package:flutter/services.dart';
 import 'package:kazumi/utils/constants.dart';
 import 'package:kazumi/shaders/shaders_controller.dart';
 import 'package:kazumi/utils/syncplay.dart';
@@ -116,6 +115,7 @@ abstract class _PlayerController with Store {
   Box setting = GStorage.setting;
   bool hAenable = true;
   late String hardwareDecoder;
+  bool androidEnableOpenSLES = true;
   bool lowMemoryMode = false;
   bool autoPlay = true;
   bool playerDebugMode = false;
@@ -192,6 +192,8 @@ abstract class _PlayerController with Store {
     mediaPlayer = await createVideoController(offset: offset);
     playerSpeed =
         setting.get(SettingBoxKey.defaultPlaySpeed, defaultValue: 1.0);
+    aspectRatioType =
+        setting.get(SettingBoxKey.defaultAspectRatioType, defaultValue: 1);
     if (Utils.isDesktop()) {
       volume = volume != -1 ? volume : 100;
       await setVolume(volume);
@@ -219,6 +221,8 @@ abstract class _PlayerController with Store {
     superResolutionType =
         setting.get(SettingBoxKey.defaultSuperResolutionType, defaultValue: 1);
     hAenable = setting.get(SettingBoxKey.hAenable, defaultValue: true);
+    androidEnableOpenSLES =
+        setting.get(SettingBoxKey.androidEnableOpenSLES, defaultValue: true);
     hardwareDecoder =
         setting.get(SettingBoxKey.hardwareDecoder, defaultValue: 'auto-safe');
     autoPlay = setting.get(SettingBoxKey.autoPlay, defaultValue: true);
@@ -263,7 +267,11 @@ abstract class _PlayerController with Store {
     await pp.setProperty("af", "scaletempo2=max-speed=8");
     if (Platform.isAndroid) {
       await pp.setProperty("volume-max", "100");
+      if (androidEnableOpenSLES) {
       await pp.setProperty("ao", "opensles");
+      } else {
+        await pp.setProperty("ao", "audiotrack");
+      }
     }
 
     await mediaPlayer.setAudioTrack(
@@ -523,7 +531,27 @@ abstract class _PlayerController with Store {
           changeEpisode,
       {bool enableTLS = false}) async {
     await syncplayController?.disconnect();
-    syncplayController = SyncplayClient(host: 'syncplay.pl', port: 8995);
+    final String syncPlayEndPoint = setting.get(SettingBoxKey.syncPlayEndPoint,
+        defaultValue: defaultSyncPlayEndPoint);
+    String syncPlayEndPointHost = '';
+    int syncPlayEndPointPort = 0;
+    debugPrint('SyncPlay: 连接到服务器 $syncPlayEndPoint');
+    try {
+      final parts = syncPlayEndPoint.split(':');
+      if (parts.length == 2) {
+        syncPlayEndPointHost = parts[0];
+        syncPlayEndPointPort = int.parse(parts[1]);
+      }
+    } catch (_) {}
+    if (syncPlayEndPointHost == '' || syncPlayEndPointPort == 0) {
+      KazumiDialog.showToast(
+        message: 'SyncPlay: 服务器地址不合法 $syncPlayEndPoint',
+      );
+      KazumiLogger().log(Level.error, 'SyncPlay: 服务器地址不合法 $syncPlayEndPoint');
+      return;
+    }
+    syncplayController =
+        SyncplayClient(host: syncPlayEndPointHost, port: syncPlayEndPointPort);
     try {
       await syncplayController!.connect(enableTLS: enableTLS);
       syncplayController!.onGeneralMessage.listen(

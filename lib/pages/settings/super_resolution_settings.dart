@@ -26,10 +26,8 @@ class _SuperResolutionSettingsState extends State<SuperResolutionSettings> {
       appBar: const SysAppBar(
         title: Text('超分辨率'),
       ),
-      body: Center(
-        child: SizedBox(
-          width: (MediaQuery.of(context).size.width > 1000) ? 1000 : null,
-          child: SettingsList(
+      body: SettingsList(
+        maxWidth: 1000,
             sections: [
               SettingsSection(
                   title: const Text(
@@ -83,8 +81,6 @@ class _SuperResolutionSettingsState extends State<SuperResolutionSettings> {
                   ]),
             ],
           ),
-        ),
-      ),
     );
   }
 }

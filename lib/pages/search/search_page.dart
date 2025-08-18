@@ -120,6 +120,8 @@ class _SearchPageState extends State<SearchPage> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+            child: FocusScope(
+              descendantsAreFocusable: false,
             child: SearchAnchor.bar(
               searchController: searchController,
               barElevation: WidgetStateProperty<double>.fromMap(
@@ -143,9 +145,12 @@ class _SearchPageState extends State<SearchPage> {
               ],
               onSubmitted: (value) {
                 searchPageController.searchBangumi(value, type: 'init');
+                  if (searchController.isOpen) {
                 searchController.closeView(value);
+                  }
               },
             ),
+          ),
           ),
           Expanded(
             child: Observer(builder: (context) {

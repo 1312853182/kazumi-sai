@@ -27,7 +27,12 @@ class _HistoryPageState extends State<HistoryPage>
     historyController.init();
   }
 
-  void onBackPressed(BuildContext context) {}
+  void onBackPressed(BuildContext context) {
+    if (KazumiDialog.observer.hasKazumiDialog) {
+      KazumiDialog.dismiss();
+      return;
+    }
+  }
 
   void showHistoryClearDialog() {
     KazumiDialog.show(
@@ -84,7 +89,7 @@ class _HistoryPageState extends State<HistoryPage>
                       : const Icon(Icons.edit))
             ],
           ),
-          body: renderBody,
+          body: SafeArea(bottom: false, child: renderBody),
           floatingActionButton: FloatingActionButton(
             child: const Icon(Icons.clear_all),
             onPressed: () {

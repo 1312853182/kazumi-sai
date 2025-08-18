@@ -37,6 +37,7 @@ class PlayerItemPanel extends StatefulWidget {
     required this.handleDanmaku,
     required this.showVideoInfo,
     required this.showSyncPlayRoomCreateDialog,
+    required this.showSyncPlayEndPointSwitchDialog,
   });
 
   final void Function(BuildContext) onBackPressed;
@@ -55,6 +56,7 @@ class PlayerItemPanel extends StatefulWidget {
   final void Function(String) sendDanmaku;
   final void Function() showVideoInfo;
   final void Function() showSyncPlayRoomCreateDialog;
+  final void Function() showSyncPlayEndPointSwitchDialog;
 
   @override
   State<PlayerItemPanel> createState() => _PlayerItemPanelState();
@@ -719,6 +721,17 @@ class _PlayerItemPanelState extends State<PlayerItemPanel> {
                                       ),
                                     ),
                                     MenuItemButton(
+                                      onPressed: () {
+                                        widget
+                                            .showSyncPlayEndPointSwitchDialog();
+                                      },
+                                      child: const Padding(
+                                        padding:
+                                            EdgeInsets.fromLTRB(0, 10, 10, 10),
+                                        child: Text("切换服务器"),
+                                      ),
+                                    ),
+                                    MenuItemButton(
                                       onPressed: () async {
                                         await playerController
                                             .exitSyncPlayRoom();
@@ -914,9 +927,18 @@ class _PlayerItemPanelState extends State<PlayerItemPanel> {
                                                 widget.keyboardFocus
                                                     .requestFocus();
                                                 showModalBottomSheet(
+                                                    backgroundColor: Theme.of(
+                                                            context)
+                                                        .colorScheme
+                                                        .surface,
                                                     isScrollControlled: true,
                                                     constraints: BoxConstraints(
-                                                        maxHeight: 280,
+                                                        maxHeight:
+                                                            MediaQuery.of(context)
+                                                                    .size
+                                                                    .height *
+                                                                3 /
+                                                                4,
                                                         maxWidth: (Utils
                                                                     .isDesktop() ||
                                                                 Utils
@@ -979,7 +1001,11 @@ class _PlayerItemPanelState extends State<PlayerItemPanel> {
                                       showModalBottomSheet(
                                           isScrollControlled: true,
                                           constraints: BoxConstraints(
-                                              maxHeight: 280,
+                                              maxHeight: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  3 /
+                                                  4,
                                               maxWidth: (Utils.isDesktop() ||
                                                       Utils.isTablet())
                                                   ? MediaQuery.of(context)
@@ -1150,32 +1176,30 @@ class _PlayerItemPanelState extends State<PlayerItemPanel> {
                                     tooltip: '视频比例',
                                   );
                                 },
-                                menuChildren: List<MenuItemButton>.generate(
-                                  3,
-                                  (int index) => MenuItemButton(
+                                menuChildren: [
+                                  for (final entry
+                                      in aspectRatioTypeMap.entries)
+                                    MenuItemButton(
                                     onPressed: () => playerController
-                                        .aspectRatioType = index + 1,
+                                          .aspectRatioType = entry.key,
                                     child: Padding(
                                       padding: const EdgeInsets.fromLTRB(
                                           0, 10, 10, 10),
                                       child: Text(
-                                        index + 1 == 1
-                                            ? '自动'
-                                            : index + 1 == 2
-                                                ? '裁切填充'
-                                                : '拉伸填充',
+                                          entry.value,
                                         style: TextStyle(
-                                            color: index + 1 ==
+                                            color: entry.key ==
                                                     playerController
                                                         .aspectRatioType
                                                 ? Theme.of(context)
                                                     .colorScheme
                                                     .primary
-                                                : null),
+                                                : null,
                                       ),
                                     ),
                                   ),
                                 ),
+                                ],
                               ),
                               (!videoPageController.isFullscreen &&
                                       !Utils.isTablet() &&

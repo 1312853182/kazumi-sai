@@ -65,6 +65,8 @@ class _SourceSheetState extends State<SourceSheet>
     KazumiDialog.show(builder: (context) {
       return Dialog(
         clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          width: 560,
         child: ValueListenableBuilder<List<String>>(
           valueListenable: aliasNotifier,
           builder: (context, aliasList, child) {
@@ -124,6 +126,7 @@ class _SourceSheetState extends State<SourceSheet>
               }).toList(),
             );
           },
+        ),
         ),
       );
     });

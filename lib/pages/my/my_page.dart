@@ -4,6 +4,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:kazumi/bean/appbar/sys_app_bar.dart';
 import 'package:kazumi/pages/menu/menu.dart';
 import 'package:provider/provider.dart';
+import 'package:kazumi/bean/dialog/dialog_helper.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
@@ -16,6 +17,10 @@ class _MyPageState extends State<MyPage> {
   late NavigationBarState navigationBarState;
 
   void onBackPressed(BuildContext context) {
+    if (KazumiDialog.observer.hasKazumiDialog) {
+      KazumiDialog.dismiss();
+      return;
+    }
     navigationBarState.updateSelectedIndex(0);
     Modular.to.navigate('/tab/popular/');
   }
@@ -39,10 +44,8 @@ class _MyPageState extends State<MyPage> {
       },
       child: Scaffold(
         appBar: const SysAppBar(title: Text('我的'), needTopOffset: false),
-        body: Center(
-          child: SizedBox(
-            width: (MediaQuery.of(context).size.width > 1000) ? 1000 : null,
-            child: SettingsList(
+        body: SettingsList(
+          maxWidth: 1000,
               sections: [
                 SettingsSection(
                   title: const Text('播放历史与视频源'),
@@ -122,8 +125,6 @@ class _MyPageState extends State<MyPage> {
               ],
             ),
           ),
-        ),
-      ),
     );
   }
 }

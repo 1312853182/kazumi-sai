@@ -11,7 +11,6 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:logger/logger.dart';
 import 'package:kazumi/utils/logger.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:kazumi/utils/webdav.dart';
 import 'package:kazumi/bean/dialog/dialog_helper.dart';
 import 'package:kazumi/bean/settings/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -157,40 +156,40 @@ class _AppWidgetState extends State<AppWidget>
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused) {
       debugPrint("应用进入后台");
-      bool webDavEnable =
-          await setting.get(SettingBoxKey.webDavEnable, defaultValue: false);
-      bool webDavEnableHistory = await setting
-          .get(SettingBoxKey.webDavEnableHistory, defaultValue: false);
-      if (webDavEnable && webDavEnableHistory) {
-        var webDav = WebDav();
-        webDav.updateHistory();
-      }
+      // bool webDavEnable =
+      //     await setting.get(SettingBoxKey.webDavEnable, defaultValue: false);
+      // bool webDavEnableHistory = await setting
+      //     .get(SettingBoxKey.webDavEnableHistory, defaultValue: false);
+      // if (webDavEnable && webDavEnableHistory) {
+      //   var webDav = WebDav();
+      //   webDav.updateHistory();
+      // }
     } else if (state == AppLifecycleState.resumed) {
       debugPrint("应用回到前台");
-      bool webDavEnable =
-          await setting.get(SettingBoxKey.webDavEnable, defaultValue: false);
-      bool webDavEnableHistory = await setting
-          .get(SettingBoxKey.webDavEnableHistory, defaultValue: false);
-      if (webDavEnable && webDavEnableHistory) {
-        try {
-          var webDav = WebDav();
-          webDav.downloadAndPatchHistory();
-        } catch (e) {
-          KazumiLogger().log(Level.error, '同步观看记录失败 ${e.toString()}');
-        }
-      }
+      // bool webDavEnable =
+      //     await setting.get(SettingBoxKey.webDavEnable, defaultValue: false);
+      // bool webDavEnableHistory = await setting
+      //     .get(SettingBoxKey.webDavEnableHistory, defaultValue: false);
+      // if (webDavEnable && webDavEnableHistory) {
+      //   try {
+      //     var webDav = WebDav();
+      //     webDav.downloadAndPatchHistory();
+      //   } catch (e) {
+      //     KazumiLogger().log(Level.error, '同步观看记录失败 ${e.toString()}');
+      //   }
+      // }
     } else if (state == AppLifecycleState.inactive) {
       debugPrint("应用处于非活动状态");
-      if (Platform.isWindows || Platform.isLinux) {
-        bool webDavEnable =
-            await setting.get(SettingBoxKey.webDavEnable, defaultValue: false);
-        bool webDavEnableHistory = await setting
-            .get(SettingBoxKey.webDavEnableHistory, defaultValue: false);
-        if (webDavEnable && webDavEnableHistory) {
-          var webDav = WebDav();
-          webDav.updateHistory();
-        }
-      }
+      // if (Platform.isWindows || Platform.isLinux) {
+      //   bool webDavEnable =
+      //       await setting.get(SettingBoxKey.webDavEnable, defaultValue: false);
+      //   bool webDavEnableHistory = await setting
+      //       .get(SettingBoxKey.webDavEnableHistory, defaultValue: false);
+      //   if (webDavEnable && webDavEnableHistory) {
+      //     var webDav = WebDav();
+      //     webDav.updateHistory();
+      //   }
+      // }
     }
   }
 
@@ -248,6 +247,7 @@ class _AppWidgetState extends State<AppWidget>
         brightness: Brightness.dark,
         colorSchemeSeed: color,
         progressIndicatorTheme: progressIndicatorTheme2024,
+        sliderTheme: sliderTheme2024,
         pageTransitionsTheme: pageTransitionsTheme2024);
     var oledDarkTheme = Utils.oledDarkTheme(defaultDarkTheme);
     themeProvider.setTheme(
@@ -256,6 +256,7 @@ class _AppWidgetState extends State<AppWidget>
           brightness: Brightness.light,
           colorSchemeSeed: color,
           progressIndicatorTheme: progressIndicatorTheme2024,
+          sliderTheme: sliderTheme2024,
           pageTransitionsTheme: pageTransitionsTheme2024),
       oledEnhance ? oledDarkTheme : defaultDarkTheme,
       notify: false,
@@ -268,17 +269,20 @@ class _AppWidgetState extends State<AppWidget>
                 colorScheme: theme,
                 brightness: Brightness.light,
                 progressIndicatorTheme: progressIndicatorTheme2024,
+                sliderTheme: sliderTheme2024,
                 pageTransitionsTheme: pageTransitionsTheme2024),
             oledEnhance
                 ? Utils.oledDarkTheme(ThemeData(
                     colorScheme: darkTheme,
                     brightness: Brightness.dark,
                     progressIndicatorTheme: progressIndicatorTheme2024,
+                    sliderTheme: sliderTheme2024,
                     pageTransitionsTheme: pageTransitionsTheme2024))
                 : ThemeData(
                     colorScheme: darkTheme,
                     brightness: Brightness.dark,
                     progressIndicatorTheme: progressIndicatorTheme2024,
+                    sliderTheme: sliderTheme2024,
                     pageTransitionsTheme: pageTransitionsTheme2024),
             notify: false,
           );

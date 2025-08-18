@@ -191,15 +191,22 @@ class _PlayerItemState extends State<PlayerItem>
     });
   }
 
-  void _handleFullscreenChange(BuildContext context) async {
-    if (videoPageController.isFullscreen && !Utils.isTablet()) {
-      playerController.lockPanel = false;
-    }
-    playerController.danmakuController.clear();
+  Future<void> _uploadHistoryToWebDav() async {
     if (webDavEnable && webDavEnableHistory) {
-      var webDav = WebDav();
-      webDav.updateHistory();
+      try {
+        var webDav = WebDav();
+        await webDav.updateHistory();
+      } catch (e) {
+        KazumiLogger().log(Level.error, 'webDav update history failed $e');
+      }
     }
+  }
+
+  void _handleFullscreenChange(BuildContext context) async {
+      playerController.lockPanel = false;
+    playerController.danmakuController.clear();
+
+    await _uploadHistoryToWebDav();
   }
 
   void handleProgressBarDragStart(ThumbDragDetails details) {
@@ -212,6 +219,7 @@ class _PlayerItemState extends State<PlayerItem>
   void handleProgressBarDragEnd() {
     playerController.play(enableSync: false);
     startHideTimer();
+    playerTimer?.cancel();
     playerTimer = getPlayerTimer();
   }
 
@@ -355,6 +363,7 @@ class _PlayerItemState extends State<PlayerItem>
       }
       // 历史记录相关
       if (playerController.playerPlaying && !videoPageController.loading) {
+        if (!WebDav().isHistorySyncing) {
         historyController.updateHistory(
             videoPageController.currentEpisode,
             videoPageController.currentRoad,
@@ -364,6 +373,7 @@ class _PlayerItemState extends State<PlayerItem>
             videoPageController.src,
             videoPageController.roadList[videoPageController.currentRoad]
                 .identifier[videoPageController.currentEpisode - 1]);
+      }
       }
       // 自动播放下一集
       if (playerController.completed &&
@@ -660,6 +670,126 @@ class _PlayerItemState extends State<PlayerItem>
             ),
           );
         });
+  }
+
+  void showSyncPlayEndPointSwitchDialog() {
+    if (playerController.syncplayController != null) {
+      KazumiDialog.showToast(message: 'SyncPlay: 请先退出当前房间再切换服务器');
+      return;
+    }
+
+    final String defaultCustomSyncPlayEndPoint = '自定义服务器';
+    String customSyncPlayEndPoint = defaultCustomSyncPlayEndPoint;
+    String selectedSyncPlayEndPoint = setting.get(
+        SettingBoxKey.syncPlayEndPoint,
+        defaultValue: defaultSyncPlayEndPoint);
+
+    KazumiDialog.show(
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setDialogState) {
+          List<String> syncPlayEndPoints = [];
+          syncPlayEndPoints.addAll(defaultSyncPlayEndPoints);
+          syncPlayEndPoints.add(customSyncPlayEndPoint);
+          if (!syncPlayEndPoints.contains(selectedSyncPlayEndPoint)) {
+            syncPlayEndPoints.add(selectedSyncPlayEndPoint);
+          }
+          return AlertDialog(
+            title: const Text('选择服务器'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                    value: selectedSyncPlayEndPoint,
+                    items: syncPlayEndPoints.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        if (newValue == defaultCustomSyncPlayEndPoint) {
+                          final serverTextController = TextEditingController();
+                          KazumiDialog.show(
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('自定义服务器'),
+                                content: TextField(
+                                  controller: serverTextController,
+                                  decoration: const InputDecoration(
+                                    hintText: '请输入服务器地址',
+                                  ),
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: const Text('取消'),
+                                    onPressed: () {
+                                      KazumiDialog.dismiss();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: const Text('确认'),
+                                    onPressed: () {
+                                      if (serverTextController
+                                              .text.isNotEmpty &&
+                                          !syncPlayEndPoints.contains(
+                                              serverTextController.text)) {
+                                        KazumiDialog.dismiss();
+                                        setDialogState(() {
+                                          customSyncPlayEndPoint =
+                                              serverTextController.text;
+                                          selectedSyncPlayEndPoint =
+                                              serverTextController.text;
+                                        });
+                                      } else {
+                                        KazumiDialog.showToast(
+                                            message: '服务器地址不能重复或为空');
+                                      }
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          setDialogState(() {
+                            selectedSyncPlayEndPoint = newValue;
+                          });
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('取消'),
+                onPressed: () {
+                  KazumiDialog.dismiss();
+                },
+              ),
+              TextButton(
+                child: const Text('确认'),
+                onPressed: () {
+                  setting.put(
+                    SettingBoxKey.syncPlayEndPoint,
+                    selectedSyncPlayEndPoint,
+                  );
+                  KazumiDialog.dismiss();
+                },
+              ),
+            ],
+          );
+        });
+      },
+    );
   }
 
   void showSyncPlayRoomCreateDialog() {
@@ -1093,6 +1223,8 @@ class _PlayerItemState extends State<PlayerItem>
                             showVideoInfo: showVideoInfo,
                             showSyncPlayRoomCreateDialog:
                                 showSyncPlayRoomCreateDialog,
+                            showSyncPlayEndPointSwitchDialog:
+                                showSyncPlayEndPointSwitchDialog,
                           )
                         : SmallestPlayerItemPanel(
                             onBackPressed: widget.onBackPressed,
@@ -1111,6 +1243,8 @@ class _PlayerItemState extends State<PlayerItem>
                             showVideoInfo: showVideoInfo,
                             showSyncPlayRoomCreateDialog:
                                 showSyncPlayRoomCreateDialog,
+                            showSyncPlayEndPointSwitchDialog:
+                                showSyncPlayEndPointSwitchDialog,
                           ),
                     // 播放器手势控制
                     Positioned.fill(
@@ -1155,6 +1289,7 @@ class _PlayerItemState extends State<PlayerItem>
                                   hideTimer?.cancel();
                                   startHideTimer();
                                 }
+                                playerTimer?.cancel();
                                 playerTimer = getPlayerTimer();
                                 playerController.showSeekTime = false;
                               },

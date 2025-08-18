@@ -47,7 +47,12 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
     themeProvider = Provider.of<ThemeProvider>(context, listen: false);
   }
 
-  void onBackPressed(BuildContext context) {}
+  void onBackPressed(BuildContext context) {
+    if (KazumiDialog.observer.hasKazumiDialog) {
+      KazumiDialog.dismiss();
+      return;
+    }
+  }
 
   void setTheme(Color? color) {
     var defaultDarkTheme = ThemeData(
@@ -55,6 +60,7 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
       brightness: Brightness.dark,
       colorSchemeSeed: color,
       progressIndicatorTheme: progressIndicatorTheme2024,
+        sliderTheme: sliderTheme2024,
       pageTransitionsTheme: pageTransitionsTheme2024
     );
     var oledDarkTheme = Utils.oledDarkTheme(defaultDarkTheme);
@@ -64,6 +70,7 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
         brightness: Brightness.light,
         colorSchemeSeed: color,
         progressIndicatorTheme: progressIndicatorTheme2024,
+          sliderTheme: sliderTheme2024,
         pageTransitionsTheme: pageTransitionsTheme2024
       ),
       oledEnhance ? oledDarkTheme : defaultDarkTheme,
@@ -78,6 +85,7 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
       brightness: Brightness.dark,
       colorSchemeSeed: Colors.green,
       progressIndicatorTheme: progressIndicatorTheme2024,
+        sliderTheme: sliderTheme2024,
       pageTransitionsTheme: pageTransitionsTheme2024
     );
     var oledDarkTheme = Utils.oledDarkTheme(defaultDarkTheme);
@@ -87,6 +95,7 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
         brightness: Brightness.light,
         colorSchemeSeed: Colors.green,
         progressIndicatorTheme: progressIndicatorTheme2024,
+          sliderTheme: sliderTheme2024,
         pageTransitionsTheme: pageTransitionsTheme2024
       ),
       oledEnhance ? oledDarkTheme : defaultDarkTheme,
@@ -132,10 +141,8 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
       },
       child: Scaffold(
         appBar: const SysAppBar(title: Text('外观设置')),
-        body: Center(
-          child: SizedBox(
-            width: (MediaQuery.of(context).size.width > 1000) ? 1000 : null,
-            child: SettingsList(
+        body: SettingsList(
+          maxWidth: 1000,
               sections: [
                 SettingsSection(
                   title: const Text('外观'),
@@ -317,8 +324,6 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
               ],
             ),
           ),
-        ),
-      ),
     );
   }
 }

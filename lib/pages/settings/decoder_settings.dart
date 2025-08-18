@@ -24,10 +24,8 @@ class _DecoderSettingsState extends State<DecoderSettings> {
       appBar: const SysAppBar(
         title: Text('硬件解码器'),
       ),
-      body: Center(
-        child: SizedBox(
-          width: (MediaQuery.of(context).size.width > 1000) ? 1000 : null,
-          child: SettingsList(
+      body: SettingsList(
+        maxWidth: 1000,
             sections: [
               SettingsSection(
                 title: const Text('选择不受支持的解码器将回退到软件解码'),
@@ -50,8 +48,6 @@ class _DecoderSettingsState extends State<DecoderSettings> {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }
