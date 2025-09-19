@@ -136,7 +136,7 @@ class _VideoPageState extends State<VideoPage>
       playerController.init(mediaUrl, offset: offset);
     });
     _logSubscription = webviewItemController.onLog.listen((event) {
-      debugPrint('Kazumi Webview log: $event');
+      debugPrint('[kazumi webview parser]: $event');
       if (event == 'clear') {
         clearWebviewLog();
         return;
@@ -668,56 +668,52 @@ class _VideoPageState extends State<VideoPage>
             ),
           ),
           const SizedBox(width: 10),
-          SizedBox(
+          MenuAnchor(
+            consumeOutsideTap: true,
+            builder: (_, MenuController controller, __) {
+              return SizedBox(
             height: 34,
             child: TextButton(
               style: ButtonStyle(
                 padding: WidgetStateProperty.all(EdgeInsets.zero),
               ),
               onPressed: () {
-                KazumiDialog.show(builder: (context) {
-                  return AlertDialog(
-                    title: const Text('播放列表'),
-                    content: StatefulBuilder(builder:
-                        (BuildContext context, StateSetter innerSetState) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: Utils.isDesktop() ? 8 : 0,
-                        children: [
-                          for (int i = 1;
-                              i <= videoPageController.roadList.length;
-                              i++) ...<Widget>[
-                            if (i == currentRoad + 1) ...<Widget>[
-                              FilledButton(
-                                onPressed: () {
-                                  KazumiDialog.dismiss();
-                                  setState(() {
-                                    currentRoad = i - 1;
-                                  });
-                                },
-                                child: Text('播放列表$i'),
-                              ),
-                            ] else ...[
-                              FilledButton.tonal(
-                                onPressed: () {
-                                  KazumiDialog.dismiss();
-                                  setState(() {
-                                    currentRoad = i - 1;
-                                  });
-                                },
-                                child: Text('播放列表$i'),
-                              ),
-                            ]
-                          ]
-                        ],
-                      );
-                    }),
-                  );
-                });
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
               },
               child: Text(
                 '播放列表${currentRoad + 1} ',
                 style: const TextStyle(fontSize: 13),
+              ),
+            ),
+              );
+            },
+            menuChildren: List<MenuItemButton>.generate(
+              videoPageController.roadList.length,
+              (int i) => MenuItemButton(
+                onPressed: () {
+                  setState(() {
+                    currentRoad = i;
+                  });
+                },
+                child: Container(
+                  height: 48,
+                  constraints: BoxConstraints(minWidth: 112),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '播放列表${i + 1}',
+                      style: TextStyle(
+                        color: i == currentRoad
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

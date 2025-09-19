@@ -63,7 +63,6 @@ class _CollectPageState extends State<CollectPage>
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(builder: (context, orientation) {
       return PopScope(
         canPop: false,
         onPopInvokedWithResult: (bool didPop, Object? result) {
@@ -123,18 +122,17 @@ class _CollectPageState extends State<CollectPage>
                 : const Icon(Icons.cloud_sync),
           ),
           body: Observer(builder: (context) {
-            return renderBody(orientation);
+          return renderBody;
           }),
         ),
       );
-    });
   }
 
-  Widget renderBody(Orientation orientation) {
+  Widget get renderBody {
     if (collectController.collectibles.isNotEmpty) {
       return TabBarView(
         controller: tabController,
-        children: contentGrid(collectController.collectibles, orientation),
+        children: contentGrid(collectController.collectibles),
       );
     } else {
       return const Center(
@@ -143,8 +141,7 @@ class _CollectPageState extends State<CollectPage>
     }
   }
 
-  List<Widget> contentGrid(
-      List<CollectedBangumi> collectedBangumiList, Orientation orientation) {
+  List<Widget> contentGrid(List<CollectedBangumi> collectedBangumiList) {
     List<Widget> gridViewList = [];
     List<List<CollectedBangumi>> collectedBangumiRenderItemList =
         List.generate(tabs.length, (_) => <CollectedBangumi>[]);
@@ -155,7 +152,8 @@ class _CollectPageState extends State<CollectPage>
       list.sort((a, b) => b.time.millisecondsSinceEpoch
           .compareTo(a.time.millisecondsSinceEpoch));
     }
-    int crossCount = orientation != Orientation.portrait ? 6 : 3;
+    int crossCount =
+        MediaQuery.of(context).orientation != Orientation.portrait ? 6 : 3;
     for (List<CollectedBangumi> collectedBangumiRenderItem
         in collectedBangumiRenderItemList) {
       gridViewList.add(

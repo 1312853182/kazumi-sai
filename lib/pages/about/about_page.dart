@@ -33,6 +33,7 @@ class _AboutPageState extends State<AboutPage> {
   late bool autoUpdate;
   double _cacheSizeMB = -1;
   final MyController myController = Modular.get<MyController>();
+  final MenuController menuController = MenuController();
 
   @override
   void initState() {
@@ -138,10 +139,8 @@ class _AboutPageState extends State<AboutPage> {
       child: Scaffold(
         appBar: const SysAppBar(title: Text('关于')),
         // backgroundColor: Colors.transparent,
-        body: Center(
-          child: SizedBox(
-            width: (MediaQuery.of(context).size.width > 1000) ? 1000 : null,
-            child: SettingsList(
+        body: SettingsList(
+          maxWidth: 1000,
               sections: [
                 SettingsSection(
                   tiles: [
@@ -157,12 +156,19 @@ class _AboutPageState extends State<AboutPage> {
                 SettingsSection(
                   title: const Text('外部链接'),
                   tiles: [
+                SettingsTile.navigation(
+                  onPressed: (_) {
+                    launchUrl(Uri.parse(Api.projectUrl),
+                        mode: LaunchMode.externalApplication);
+                  },
+                  title: const Text('项目主页'),
+                ),
                     SettingsTile.navigation(
                       onPressed: (_) {
                         launchUrl(Uri.parse(Api.sourceUrl),
                             mode: LaunchMode.externalApplication);
                       },
-                      title: const Text('项目主页'),
+                  title: const Text('代码仓库'),
                       value: const Text('Github'),
                     ),
                     SettingsTile.navigation(
@@ -196,33 +202,48 @@ class _AboutPageState extends State<AboutPage> {
                   SettingsSection(
                     title: const Text('默认行为'),
                     tiles: [
-                      // if (Utils.isDesktop())
                       SettingsTile.navigation(
-                        title: const Text('关闭时'),
-                        value: Text(exitBehaviorTitles[exitBehavior]),
                         onPressed: (_) {
-                          KazumiDialog.show(builder: (context) {
-                            return SimpleDialog(
-                              clipBehavior: Clip.antiAlias,
+                      if (menuController.isOpen) {
+                        menuController.close();
+                      } else {
+                        menuController.open();
+                      }
+                    },
                               title: const Text('关闭时'),
-                              children: [
+                    value: MenuAnchor(
+                      consumeOutsideTap: true,
+                      controller: menuController,
+                      builder: (_, __, ___) {
+                        return Text(exitBehaviorTitles[exitBehavior]);
+                      },
+                      menuChildren: [
                                 for (int i = 0; i < 3; i++)
-                                  RadioListTile(
-                                    value: i,
-                                    groupValue: exitBehavior,
-                                    onChanged: (int? value) {
-                                      exitBehavior = value ?? 2;
-                                      setting.put(
-                                          SettingBoxKey.exitBehavior, value);
-                                      KazumiDialog.dismiss();
+                          MenuItemButton(
+                            requestFocusOnHover: false,
+                            onPressed: () {
+                              exitBehavior = i;
+                              setting.put(SettingBoxKey.exitBehavior, i);
                                       setState(() {});
                                     },
-                                    title: Text(exitBehaviorTitles[i]),
+                            child: Container(
+                              height: 48,
+                              constraints: BoxConstraints(minWidth: 112),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  exitBehaviorTitles[i],
+                                  style: TextStyle(
+                                    color: i == exitBehavior
+                                        ? Theme.of(context).colorScheme.primary
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                            ),
                                   ),
                               ],
-                            );
-                          });
-                        },
+                    ),
                       ),
                     ],
                   ),
@@ -273,8 +294,6 @@ class _AboutPageState extends State<AboutPage> {
               ],
             ),
           ),
-        ),
-      ),
     );
   }
 }

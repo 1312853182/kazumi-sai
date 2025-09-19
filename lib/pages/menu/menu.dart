@@ -122,7 +122,7 @@ class _ScaffoldMenu extends State<ScaffoldMenu> {
                           child: InkWell(
                             customBorder: const CircleBorder(),
                             onTap: () {
-                              Modular.to.pushNamed('/settings/history');
+                              Modular.to.pushNamed('/settings/history/');
                             },
                             child: Image.asset(
                               'assets/images/logo/logo_android.png',
@@ -166,13 +166,25 @@ class _ScaffoldMenu extends State<ScaffoldMenu> {
           ),
           Expanded(
             child: Container(
+              decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16.0),
+                  bottomLeft: Radius.circular(16.0),
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16.0),
+                  bottomLeft: Radius.circular(16.0),
+                ),
               child: PageView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: menu.size,
                 itemBuilder: (_, __) => const RouterOutlet(),
               ),
             ),
+          ),
           ),
         ],
       ),

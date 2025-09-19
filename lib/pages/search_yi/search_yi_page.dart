@@ -33,7 +33,6 @@ class _SearchYiPageState extends State<SearchYiPage>
   final InfoController infoController = InfoController();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  bool showSearchBar = true; // 默认显示搜索栏
   final VideoPageController videoPageController =
       Modular.get<VideoPageController>();
   final PluginsController pluginsController = Modular.get<PluginsController>();
@@ -103,7 +102,6 @@ class _SearchYiPageState extends State<SearchYiPage>
     return Scaffold(
         appBar: SysAppBar(
           title: Visibility(
-            visible: showSearchBar,
             child: TextField(
               controller: _searchController,
               focusNode: _focusNode,
@@ -130,22 +128,12 @@ class _SearchYiPageState extends State<SearchYiPage>
             ),
           ),
           actions: [
-            IconButton(
-              icon: showSearchBar
-                  ? const Icon(Icons.close)
-                  : const Icon(Icons.search),
-              onPressed: () {
-                setState(() {
-                  showSearchBar = !showSearchBar;
-                  if (showSearchBar) {
-                    _focusNode.requestFocus();
-                  } else {
-                    _focusNode.unfocus();
-                    _searchController.clear();
-                  }
-                });
-              },
-            ),
+            if (MediaQuery.of(context).orientation == Orientation.portrait)
+              IconButton(
+                tooltip: '历史记录',
+                onPressed: () => Modular.to.pushNamed('/settings/history/'),
+                icon: const Icon(Icons.history),
+              ),
           ],
         ),
         body: Scaffold(
@@ -270,6 +258,7 @@ class _SearchYiPageState extends State<SearchYiPage>
                                               ratingScore: 0.0,
                                               votes: 0,
                                               votesCount: [],
+                                              info: '',
                                             );
 
                                             videoPageController.currentPlugin =
@@ -314,7 +303,9 @@ class _SearchYiPageState extends State<SearchYiPage>
                                   GeneralErrorButton(
                                     onPressed: () {
                                       queryManager?.querySourceWithPage(
-                                          _searchController.text, plugin.name, _currentPages[plugin.name] ?? 1,
+                                          _searchController.text,
+                                          plugin.name,
+                                          _currentPages[plugin.name] ?? 1,
                                           reload: true);
                                     },
                                     text: '重试',

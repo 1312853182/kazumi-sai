@@ -113,10 +113,8 @@ class _PlayerSettingsPageState extends State<WebDavSettingsPage> {
       },
       child: Scaffold(
         appBar: const SysAppBar(title: Text('同步设置')),
-        body: Center(
-          child: SizedBox(
-            width: (MediaQuery.of(context).size.width > 1000) ? 1000 : null,
-            child: SettingsList(
+        body: SettingsList(
+          maxWidth: 1000,
               sections: [
                 SettingsSection(
                   title: const Text('Github'),
@@ -181,10 +179,7 @@ class _PlayerSettingsPageState extends State<WebDavSettingsPage> {
                       onPressed: (_) async {
                         Modular.to.pushNamed('/settings/webdav/editor');
                       },
-                      title: Text(
-                        'WEBDAV配置',
-                        style: Theme.of(context).textTheme.titleMedium!,
-                      ),
+                  title: const Text('WEBDAV配置'),
                     ),
                   ],
                 ),
@@ -215,8 +210,6 @@ class _PlayerSettingsPageState extends State<WebDavSettingsPage> {
               ],
             ),
           ),
-        ),
-      ),
     );
   }
 }

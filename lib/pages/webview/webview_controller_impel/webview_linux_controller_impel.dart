@@ -10,7 +10,7 @@ class WebviewLinuxItemControllerImpel extends WebviewItemController<Webview> {
   @override
   Future<void> init() async {
     webviewController ??= await WebviewWindow.create(
-      configuration: const CreateConfiguration(userScripts: [
+      configuration: const CreateConfiguration(headless: true, userScripts: [
         UserScript(
             source: blobScript,
             injectionTime: UserScriptInjectionTime.documentStart,

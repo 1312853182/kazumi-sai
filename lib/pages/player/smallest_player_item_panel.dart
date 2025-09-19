@@ -441,9 +441,11 @@ class _SmallestPlayerItemPanelState extends State<SmallestPlayerItemPanel> {
                               (int index) => MenuItemButton(
                                 onPressed: () => playerController
                                     .aspectRatioType = index + 1,
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(0, 10, 10, 10),
+                                child: Container(
+                                  height: 48,
+                                  constraints: BoxConstraints(minWidth: 112),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
                                   child: Text(
                                     index + 1 == 1
                                         ? '自动'
@@ -461,10 +463,15 @@ class _SmallestPlayerItemPanelState extends State<SmallestPlayerItemPanel> {
                                 ),
                               ),
                             ),
-                            child: const Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                            ),
+                            child: Container(
+                              height: 48,
+                              constraints: BoxConstraints(minWidth: 112),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
                               child: Text("视频比例"),
                             ),
+                          ),
                           ),
                           SubmenuButton(
                             menuChildren: [
@@ -474,9 +481,11 @@ class _SmallestPlayerItemPanelState extends State<SmallestPlayerItemPanel> {
                                   onPressed: () async {
                                     await widget.setPlaybackSpeed(i);
                                   },
-                                  child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        0, 10, 10, 10),
+                                  child: Container(
+                                    height: 48,
+                                    constraints: BoxConstraints(minWidth: 112),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
                                     child: Text(
                                       '${i}x',
                                       style: TextStyle(
@@ -489,12 +498,17 @@ class _SmallestPlayerItemPanelState extends State<SmallestPlayerItemPanel> {
                                     ),
                                   ),
                                 ),
+                                ),
                               ],
                             ],
-                            child: const Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                            child: Container(
+                              height: 48,
+                              constraints: BoxConstraints(minWidth: 112),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
                               child: Text("倍速"),
                             ),
+                          ),
                           ),
                           SubmenuButton(
                             menuChildren: List<MenuItemButton>.generate(
@@ -502,9 +516,11 @@ class _SmallestPlayerItemPanelState extends State<SmallestPlayerItemPanel> {
                               (int index) => MenuItemButton(
                                 onPressed: () =>
                                     playerController.setShader(index + 1),
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(0, 10, 10, 10),
+                                child: Container(
+                                  height: 48,
+                                  constraints: BoxConstraints(minWidth: 112),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
                                   child: Text(
                                     index + 1 == 1
                                         ? '关闭'
@@ -524,72 +540,105 @@ class _SmallestPlayerItemPanelState extends State<SmallestPlayerItemPanel> {
                                 ),
                               ),
                             ),
-                            child: const Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                            ),
+                            child: Container(
+                              height: 48,
+                              constraints: BoxConstraints(minWidth: 112),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
                               child: Text("超分辨率"),
                             ),
+                          ),
                           ),
                           SubmenuButton(
                               menuChildren: [
                                 MenuItemButton(
-                                  child: Padding(
-                                    padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                                child: Container(
+                                  height: 48,
+                                  constraints: BoxConstraints(minWidth: 112),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
                                     child: Text(
                                         "当前房间: ${playerController.syncplayRoom == '' ? '未加入' : playerController.syncplayRoom}"),
                                   ),
                                 ),
+                              ),
                                 MenuItemButton(
-                                  child: Padding(
-                                    padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                                child: Container(
+                                  height: 48,
+                                  constraints: BoxConstraints(minWidth: 112),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
                                     child: Text(
                                         "网络延时: ${playerController.syncplayClientRtt}ms"),
                                   ),
                                 ),
+                              ),
                                 MenuItemButton(
                                   onPressed: () {
                                     widget.showSyncPlayRoomCreateDialog();
                                   },
-                                  child: const Padding(
-                                    padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                                child: Container(
+                                  height: 48,
+                                  constraints: BoxConstraints(minWidth: 112),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
                                     child: Text("加入房间"),
                                   ),
                                 ),
+                              ),
                                 MenuItemButton(
                                   onPressed: () {
                                     widget.showSyncPlayEndPointSwitchDialog();
                                   },
-                                  child: const Padding(
-                                    padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                                child: Container(
+                                  height: 48,
+                                  constraints: BoxConstraints(minWidth: 112),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
                                     child: Text("切换服务器"),
                                   ),
                                 ),
+                              ),
                                 MenuItemButton(
                                   onPressed: () async {
                                     await playerController.exitSyncPlayRoom();
                                   },
-                                  child: const Padding(
-                                    padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                                child: Container(
+                                  height: 48,
+                                  constraints: BoxConstraints(minWidth: 112),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
                                     child: Text("断开连接"),
                                   ),
                                 ),
+                              ),
                               ],
-                              child: const Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
-                                  child: Text("一起看"))),
-                          MenuItemButton(
-                            onPressed: () {
-                              widget.showDanmakuSwitch();
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
-                              child: Text("弹幕切换"),
+                            child: Container(
+                              height: 48,
+                              constraints: BoxConstraints(minWidth: 112),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text("一起看"),
+                              ),
                             ),
                           ),
                           MenuItemButton(
                             onPressed: () {
+                              widget.showDanmakuSwitch();
+                            },
+                            child: Container(
+                              height: 48,
+                              constraints: BoxConstraints(minWidth: 112),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                              child: Text("弹幕切换"),
+                            ),
+                          ),
+                          ),
+                          MenuItemButton(
+                            onPressed: () {
                               showModalBottomSheet(
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.surface,
                                 isScrollControlled: true,
                                 constraints: BoxConstraints(
                                     maxHeight:
@@ -611,19 +660,27 @@ class _SmallestPlayerItemPanelState extends State<SmallestPlayerItemPanel> {
                                 },
                               );
                             },
-                            child: const Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                            child: Container(
+                              height: 48,
+                              constraints: BoxConstraints(minWidth: 112),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
                               child: Text("弹幕设置"),
                             ),
+                          ),
                           ),
                           MenuItemButton(
                             onPressed: () {
                               widget.showVideoInfo();
                             },
-                            child: const Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                            child: Container(
+                              height: 48,
+                              constraints: BoxConstraints(minWidth: 112),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
                               child: Text("视频详情"),
                             ),
+                          ),
                           ),
                           MenuItemButton(
                             onPressed: () {
@@ -638,19 +695,27 @@ class _SmallestPlayerItemPanelState extends State<SmallestPlayerItemPanel> {
                                 }
                               });
                             },
-                            child: const Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                            child: Container(
+                              height: 48,
+                              constraints: BoxConstraints(minWidth: 112),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
                               child: Text("远程投屏"),
                             ),
+                          ),
                           ),
                           MenuItemButton(
                             onPressed: () {
                               playerController.lanunchExternalPlayer();
                             },
-                            child: const Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 10, 10),
+                            child: Container(
+                              height: 48,
+                              constraints: BoxConstraints(minWidth: 112),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
                               child: Text("外部播放"),
                             ),
+                          ),
                           ),
                         ],
                       ),
