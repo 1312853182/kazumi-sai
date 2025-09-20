@@ -196,96 +196,151 @@ class _SearchYiPageState extends State<SearchYiPage>
                     in infoController.pluginSearchResponseList) {
                   if (searchResponse.pluginName == plugin.name) {
                     for (var searchItem in searchResponse.data) {
-                      cardList.add(Card(
-                        color: Colors.transparent,
-                        child: SizedBox(
-                          height: 100, // 固定卡片高度
-                          child: Row(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.center, // 垂直居中
-                            children: [
-                              // 左侧固定高度图片
-                              _buildImageWidget(
-                                  searchItem.img, plugin, searchItem.src),
-                              // 右侧文字区域
-                              Expanded(
-                                child: Container(
-                                  height: 100,
-                                  alignment: Alignment.centerLeft,
-                                  child: ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    title: Text(
-                                      searchItem.name,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: plugin.chapterRoads.isEmpty
-                                            ? Colors.white
-                                            : null,
-                                      ),
-                                    ),
-                                    // 关键修改部分：添加点击条件判断
-                                    onTap: plugin.chapterRoads.isEmpty
-                                        ? null
-                                        : () async {
-                                            // 根据变量实际情况可能需要用空字符串判断
-                                            KazumiDialog.showLoading(
-                                                msg: '获取中');
-                                            String todayDate = DateTime.now()
-                                                .toString()
-                                                .split(' ')[0];
-                                            videoPageController.bangumiItem =
-                                                BangumiItem(
-                                              id: _generateUniqueId(
-                                                  searchItem.name),
-                                              type: _generateUniqueId(
-                                                  searchItem.name),
-                                              name: searchItem.name,
-                                              nameCn: searchItem.name,
-                                              summary:
-                                                  "影片《${searchItem.name}》是通过规则${plugin.name}直接搜索得到。\r无法获取bangumi的数据，但支持除此以外包括追番，观看记录之外的绝大部分功能。",
-                                              airDate: todayDate,
-                                              airWeekday: 0,
-                                              rank: 0,
-                                              images: {
-                                                'small': searchItem.img,
-                                                'grid': searchItem.img,
-                                                'large': searchItem.img,
-                                                'medium': searchItem.img,
-                                                'common': searchItem.img,
-                                              },
-                                              tags: [],
-                                              alias: [],
-                                              ratingScore: 0.0,
-                                              votes: 0,
-                                              votesCount: [],
-                                              info: '',
-                                            );
+                      cardList.add(
+                        Card(
+                          color: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            // 圆角设计
+                          ),
+                          child: SizedBox(
+                            height: 120, // 稍微增加高度以容纳标签
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: plugin.chapterRoads.isEmpty
+                                  ? null
+                                  : () async {
+                                      // 点击处理逻辑保持不变
+                                      KazumiDialog.showLoading(msg: '获取中');
+                                      String todayDate = DateTime.now()
+                                          .toString()
+                                          .split(' ')[0];
+                                      videoPageController.bangumiItem =
+                                          BangumiItem(
+                                        id: _generateUniqueId(searchItem.name),
+                                        type:
+                                            _generateUniqueId(searchItem.name),
+                                        name: searchItem.name,
+                                        nameCn: searchItem.name,
+                                        summary:
+                                            "影片《${searchItem.name}》是通过规则${plugin.name}直接搜索得到。\r无法获取bangumi的数据，但支持除此以外包括追番，观看记录之外的绝大部分功能。",
+                                        airDate: todayDate,
+                                        airWeekday: 0,
+                                        rank: 0,
+                                        images: {
+                                          'small': searchItem.img,
+                                          'grid': searchItem.img,
+                                          'large': searchItem.img,
+                                          'medium': searchItem.img,
+                                          'common': searchItem.img,
+                                        },
+                                        tags: [],
+                                        alias: [],
+                                        ratingScore: 0.0,
+                                        votes: 0,
+                                        votesCount: [],
+                                        info: '',
+                                      );
 
-                                            videoPageController.currentPlugin =
-                                                plugin;
-                                            videoPageController.title =
-                                                searchItem.name;
-                                            videoPageController.src =
-                                                searchItem.src;
-                                            try {
-                                              await videoPageController
-                                                  .queryRoads(searchItem.src,
-                                                      plugin.name);
-                                              KazumiDialog.dismiss();
-                                              Modular.to.pushNamed('/video/');
-                                            } catch (e) {
-                                              KazumiLogger().log(
-                                                  Level.error, e.toString());
-                                              KazumiDialog.dismiss();
-                                            }
-                                          },
+                                      videoPageController.currentPlugin =
+                                          plugin;
+                                      videoPageController.title =
+                                          searchItem.name;
+                                      videoPageController.src = searchItem.src;
+                                      try {
+                                        await videoPageController.queryRoads(
+                                            searchItem.src, plugin.name);
+                                        KazumiDialog.dismiss();
+                                        Modular.to.pushNamed('/video/');
+                                      } catch (e) {
+                                        KazumiLogger()
+                                            .log(Level.error, e.toString());
+                                        KazumiDialog.dismiss();
+                                      }
+                                    },
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // 左侧图片
+                                  _buildImageWidget(
+                                      searchItem.img, plugin, searchItem.src),
+
+                                  const SizedBox(width: 12), // 添加间距
+
+                                  // 右侧内容区域
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        // 标题
+                                        Text(
+                                          searchItem.name,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: plugin.chapterRoads.isEmpty
+                                                ? Colors.white
+                                                : Theme.of(context)
+                                                    .textTheme
+                                                    .bodyLarge
+                                                    ?.color,
+                                          ),
+                                          maxLines: 2, // 限制最多两行
+                                          overflow: TextOverflow
+                                              .ellipsis, // 超出部分显示省略号
+                                        ),
+
+                                        const SizedBox(height: 8),
+                                        // 添加间距
+
+                                        // 标签区域
+                                        if (searchItem.tags.isNotEmpty)
+                                          SizedBox(
+                                            height: 28, // 固定标签区域高度
+                                            child: ListView(
+                                              scrollDirection:
+                                                  Axis.horizontal, // 水平滚动
+                                              children: searchItem.tags.entries
+                                                  .map((entry) {
+                                                return Container(
+                                                  margin: const EdgeInsets.only(
+                                                      right: 6),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.blue
+                                                        .withOpacity(0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                  ),
+                                                  child: Text(
+                                                    '${entry.key}:${entry.value}',
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      color: Colors.black,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                );
+                                              }).toList(),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              )
-                            ],
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                      ));
+                      );
                     }
                   }
                 }
@@ -316,7 +371,7 @@ class _SearchYiPageState extends State<SearchYiPage>
                                         return AlertDialog(
                                           title: const Text('退出确认'),
                                           content: const Text(
-                                              '您想要离开 Kazumi 并在浏览器中打开此视频链接吗？'),
+                                              '您想要离开 Kazumi 并在浏览器中打开此链接吗？'),
                                           actions: [
                                             TextButton(
                                                 onPressed: () =>
@@ -350,7 +405,7 @@ class _SearchYiPageState extends State<SearchYiPage>
                                         return AlertDialog(
                                           title: const Text('退出确认'),
                                           content: const Text(
-                                              '您想要离开 Kazumi 并在浏览器中打开此视频链接吗？'),
+                                              '您想要离开 Kazumi 并在浏览器中打开此链接吗？'),
                                           actions: [
                                             TextButton(
                                                 onPressed: () =>
@@ -386,52 +441,161 @@ class _SearchYiPageState extends State<SearchYiPage>
   }
 
   Widget _buildImageWidget(String imgUrl, Plugin plugin, String resultUrl) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      height: 100,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: GestureDetector(
-          // 新增手势检测层
-          onTap: () {
-            String url = '';
-            if (resultUrl.contains(plugin.baseUrl)) {
-              url = resultUrl;
-            } else {
-              url = plugin.baseUrl + resultUrl;
-            }
-            KazumiDialog.show(builder: (context) {
-              return AlertDialog(
-                title: const Text('退出确认'),
-                content: const Text('您想要离开 Kazumi 并在浏览器中打开此视频链接吗？'),
-                actions: [
-                  TextButton(
-                      onPressed: () => KazumiDialog.dismiss(),
-                      child: const Text('取消')),
-                  TextButton(
-                      onPressed: () {
-                        KazumiDialog.dismiss();
-                        launchUrl(Uri.parse(url));
-                      },
-                      child: const Text('确认')),
-                ],
-              );
-            });
-          },
-          child: Image.network(
-            imgUrl,
-            fit: BoxFit.fitHeight,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: Colors.grey[300],
-                width: 70,
-                child: const Icon(Icons.broken_image),
-              );
-            },
+    // 处理空图片URL的情况
+    if (imgUrl.isEmpty) {
+      return _buildPlaceholderWidget(plugin, resultUrl);
+    }
+
+    return Align(
+      alignment: Alignment.centerRight, // 确保图片靠右对齐
+      child: Container(
+        // 移除左侧所有空白，仅保留右侧必要间距
+        margin: const EdgeInsets.only(right: 4),
+        height: 120, // 与行高保持一致
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: GestureDetector(
+            onTap: () => _handleImageTap(plugin, resultUrl),
+            child: Image.network(
+              imgUrl,
+              fit: BoxFit.contain, // 保持原始比例
+              alignment: Alignment.center,
+              cacheWidth: 200,
+              cacheHeight: 300,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return _buildLoadingWidget();
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return _buildErrorImage(plugin, resultUrl);
+              },
+            ),
           ),
         ),
       ),
     );
+  }
+
+// 构建占位符组件（无图状态）
+  Widget _buildPlaceholderWidget(Plugin plugin, String resultUrl) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      width: 84,
+      height: 120,
+      decoration: BoxDecoration(
+        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.image_not_supported, color: Colors.grey, size: 24),
+          Text('无图片', style: TextStyle(fontSize: 10, color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+
+// 构建加载中组件
+  Widget _buildLoadingWidget() {
+    return Container(
+      width: 84,
+      height: 120,
+      color: Colors.grey[300],
+      child: Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 1.5,
+          valueColor:
+              AlwaysStoppedAnimation<Color>(Colors.blue.withOpacity(0.7)),
+        ),
+      ),
+    );
+  }
+
+// 构建错误状态图片组件（调整高度适配）
+  Widget _buildErrorImage(Plugin plugin, String resultUrl) {
+    return Container(
+      color: Colors.grey[300],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.broken_image, color: Colors.grey, size: 32),
+          Text(
+            '图片加载失败',
+            style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              visualDensity: VisualDensity.compact,
+            ),
+            onPressed: () {
+              setState(() {}); // 触发重绘重试加载
+            },
+            child: const Text('重试',
+                style: TextStyle(fontSize: 12, color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 在_SearchYiPageState类中添加以下方法
+
+  void _handleImageTap(Plugin plugin, String resultUrl) {
+    String url = '';
+    if (resultUrl.isNotEmpty) {
+      // 处理URL拼接逻辑
+      if (resultUrl.startsWith('http://') || resultUrl.startsWith('https://')) {
+        url = resultUrl;
+      } else if (plugin.baseUrl.isNotEmpty) {
+        if (plugin.baseUrl.endsWith('/') && resultUrl.startsWith('/')) {
+          url = plugin.baseUrl + resultUrl.substring(1);
+        } else if (!plugin.baseUrl.endsWith('/') &&
+            !resultUrl.startsWith('/')) {
+          url = '${plugin.baseUrl}/$resultUrl';
+        } else {
+          url = plugin.baseUrl + resultUrl;
+        }
+      }
+    }
+
+    // 如果URL有效则显示对话框
+    if (url.isNotEmpty) {
+      KazumiDialog.show(builder: (context) {
+        return AlertDialog(
+          title: const Text('打开链接'),
+          content: Text('是否在浏览器中打开：\n$url'),
+          actions: [
+            TextButton(
+              onPressed: () => KazumiDialog.dismiss(),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () async {
+                KazumiDialog.dismiss();
+                // 检查URL是否可打开
+                if (await canLaunchUrl(Uri.parse(url))) {
+                  await launchUrl(Uri.parse(url),
+                      mode: LaunchMode.externalApplication);
+                } else {
+                  // 处理无法打开URL的情况
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('无法打开链接：$url')),
+                  );
+                }
+              },
+              child: const Text('确认'),
+            ),
+          ],
+        );
+      });
+    } else {
+      // 处理无效URL的情况
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('无效的链接地址')),
+      );
+    }
   }
 
   Widget buildPagination(Plugin plugin) {

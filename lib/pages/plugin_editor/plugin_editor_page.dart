@@ -33,12 +33,14 @@ class _PluginEditorPageState extends State<PluginEditorPage> {
       TextEditingController();
   final TextEditingController refererController = TextEditingController();
   final TextEditingController cookieController = TextEditingController();
-  final TextEditingController htmlIdentifierController = TextEditingController();
+  final TextEditingController htmlIdentifierController =
+      TextEditingController();
 
-  final Map<String, String> _editedTags = {};
+  final Map<String, tagParser> _editedTags = {};
   final TextEditingController _tagKeyController = TextEditingController();
-  final TextEditingController _tagValueController = TextEditingController();
-
+  final TextEditingController _tagUrlController = TextEditingController();
+  final TextEditingController _tagXpathController = TextEditingController();
+  bool _tagShow = false;
 
   bool muliSources = true;
   bool useWebview = true;
@@ -68,7 +70,7 @@ class _PluginEditorPageState extends State<PluginEditorPage> {
     chapterResultNameController.text = plugin.chapterResultName;
     refererController.text = plugin.referer;
     cookieController.text = plugin.cookie;
-    htmlIdentifierController.text =plugin.htmlIdentifier;
+    htmlIdentifierController.text = plugin.htmlIdentifier;
     muliSources = plugin.muliSources;
     useWebview = plugin.useWebview;
     useNativePlayer = plugin.useNativePlayer;
@@ -242,7 +244,8 @@ class _PluginEditorPageState extends State<PluginEditorPage> {
                     TextField(
                       controller: htmlIdentifierController,
                       decoration: const InputDecoration(
-                          labelText: 'htmlIdentifier', border: OutlineInputBorder()),
+                          labelText: 'htmlIdentifier',
+                          border: OutlineInputBorder()),
                     ),
                   ],
                 ),
@@ -279,7 +282,7 @@ class _PluginEditorPageState extends State<PluginEditorPage> {
           plugin.referer = refererController.text;
           plugin.tags.clear();
           plugin.tags.addAll(_editedTags);
-          plugin.htmlIdentifier =htmlIdentifierController.text;
+          plugin.htmlIdentifier = htmlIdentifierController.text;
           pluginsController.updatePlugin(plugin);
           Navigator.of(context).pop();
         },
@@ -288,48 +291,69 @@ class _PluginEditorPageState extends State<PluginEditorPage> {
   }
 
   Widget _buildTagEditor() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
+    return Column(
         children: [
-          Expanded(
-            flex: 3,
-            child: TextField(
-              controller: _tagKeyController,
-              decoration: const InputDecoration(
-                labelText: 'key',
-                border: OutlineInputBorder(),
+          TextField(
+            controller: _tagKeyController,
+            decoration: const InputDecoration(
+                labelText: 'key', border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _tagUrlController,
+            decoration: const InputDecoration(
+                labelText: 'Url', border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _tagXpathController,
+            decoration: const InputDecoration(
+                labelText: 'xpath', border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              // 原来的SwitchListTile拆解
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('show'),
+                    Text('展示标签信息在搜索页面'),
+                  ],
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 7,
-            child: TextField(
-              controller: _tagValueController,
-              decoration: const InputDecoration(
-                labelText: 'value',
-                border: OutlineInputBorder(),
+              Switch(
+                value: _tagShow,
+                onChanged: (bool value) {
+                  setState(() {
+                    _tagShow = value;
+                  });
+                },
               ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              if (_tagKeyController.text.isNotEmpty &&
-                  _tagValueController.text.isNotEmpty) {
-                setState(() {
-                  _editedTags[_tagKeyController.text] =
-                      _tagValueController.text;
-                  _tagKeyController.clear();
-                  _tagValueController.clear();
-                });
-              }
-            },
-          ),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  if (_tagKeyController.text.isNotEmpty &&
+                      _tagUrlController.text.isNotEmpty &&
+                      _tagXpathController.text.isNotEmpty) {
+                    setState(() {
+                      _editedTags[_tagKeyController.text] = tagParser(
+                          url: _tagUrlController.text,
+                          xpath: _tagXpathController.text,
+                          show: _tagShow);
+                      _tagKeyController.clear();
+                      _tagUrlController.clear();
+                      _tagXpathController.clear();
+                      _tagShow = false;
+                    });
+                  }
+                },
+              ),
+            ],
+          )
         ],
-      ),
-    );
+      );
   }
 
   // 修改 _buildTagList 方法
@@ -340,7 +364,8 @@ class _PluginEditorPageState extends State<PluginEditorPage> {
         shrinkWrap: true,
         children: _editedTags.entries
             .map((entry) => ListTile(
-                  title: Text('${entry.key}: ${entry.value}'),
+                  title: Text(
+                      '${entry.key}: { url:${entry.value.url}, xpath:${entry.value.xpath}, show:${entry.value.show} }'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -364,61 +389,93 @@ class _PluginEditorPageState extends State<PluginEditorPage> {
   }
 
 // 添加新的编辑标签对话框方法
-  void _showEditTagDialog(String oldKey, String oldValue) {
+  void _showEditTagDialog(String oldKey, tagParser oldValue) {
     final TextEditingController keyController =
-        TextEditingController(text: oldKey);
-    final TextEditingController valueController =
-        TextEditingController(text: oldValue);
+    TextEditingController(text: oldKey);
+    final TextEditingController urlController =
+    TextEditingController(text: oldValue.url);
+    final TextEditingController xpathController =
+    TextEditingController(text: oldValue.xpath);
+
+    // 将 show 变量移到 StatefulBuilder 内部管理
+    bool show = oldValue.show;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('编辑tag'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: keyController,
-              decoration: const InputDecoration(
-                labelText: 'key',
-                border: OutlineInputBorder(),
+      builder: (context) {
+        // 使用 StatefulBuilder 来管理对话框内部的状态
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return AlertDialog(
+              title: const Text('编辑tag'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: keyController,
+                    decoration: const InputDecoration(
+                        labelText: 'key', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: urlController,
+                    decoration: const InputDecoration(
+                        labelText: 'Url', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: xpathController,
+                    decoration: const InputDecoration(
+                        labelText: 'xpath', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 20),
+                  SwitchListTile(
+                    title: const Text('show'),
+                    subtitle: const Text('展示标签信息在搜索页面'),
+                    value: show,
+                    onChanged: (bool value) {
+                      // 使用 setDialogState 而不是 setState
+                      setDialogState(() {
+                        show = value;
+                      });
+                    },
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: valueController,
-              decoration: const InputDecoration(
-                labelText: 'value',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () {
-              final newKey = keyController.text.trim();
-              final newValue = valueController.text.trim();
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('取消'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    final newKey = keyController.text.trim();
+                    final newValue = tagParser(
+                        url: urlController.text.trim(),
+                        xpath: xpathController.text.trim(),
+                        show: show); // 使用更新后的 show 值
 
-              if (newKey.isNotEmpty && newValue.isNotEmpty) {
-                setState(() {
-                  // 处理键修改的情况
-                  if (newKey != oldKey) {
-                    _editedTags.remove(oldKey);
-                  }
-                  _editedTags[newKey] = newValue;
-                });
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('保存'),
-          ),
-        ],
-      ),
+                    if (newKey.isNotEmpty &&
+                        newValue.url.isNotEmpty &&
+                        newValue.xpath.isNotEmpty) {
+                      // 使用外部组件的 setState 来更新主界面的状态
+                      setState(() {
+                        // 处理键修改的情况
+                        if (newKey != oldKey) {
+                          _editedTags.remove(oldKey);
+                        }
+                        _editedTags[newKey] = newValue;
+                      });
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('保存'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

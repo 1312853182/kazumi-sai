@@ -10,10 +10,50 @@ import 'package:logger/logger.dart';
 import 'package:kazumi/request/api.dart';
 import 'package:kazumi/utils/logger.dart';
 import 'package:path/path.dart';
+import 'package:xpath_selector/xpath_selector.dart';
 import 'package:xpath_selector_html_parser/xpath_selector_html_parser.dart';
 import 'package:kazumi/utils/utils.dart';
 
 WebYiController webYiController = Modular.get<WebYiController>();
+
+class tagParser {
+  String url;
+  String xpath;
+  String value;
+  bool show;
+
+  tagParser({
+    required this.url,
+    required this.xpath,
+    this.value = '',
+    this.show = false,
+  });
+
+  // 添加 fromJson 工厂方法
+  factory tagParser.fromJson(Map<String, dynamic>? json) {
+    // 如果 json 为 null，返回一个默认的 TagParser
+    if (json == null) {
+      return tagParser(url: '', xpath: '');
+    }
+
+    return tagParser(
+      url: json['url'] ?? '',
+      xpath: json['xpath'] ?? '',
+      value: json['value'] ?? '',
+      show: json['show'] ?? false,
+    );
+  }
+
+  // 添加 toJson 方法
+  Map<String, dynamic> toJson() {
+    return {
+      'url': url,
+      'xpath': xpath,
+      'value': value,
+      'show': show,
+    };
+  }
+}
 
 class Plugin {
   String api;
@@ -39,8 +79,8 @@ class Plugin {
   String chapterResult;
   String chapterResultName;
   String referer;
-  Map<String, String> tags;
-  Map<String, String> keywords;
+  Map<String, tagParser> tags;
+
   String htmlIdentifier;
 
   Plugin({
@@ -68,72 +108,88 @@ class Plugin {
     this.chapterResultName = '',
     required this.referer,
     required this.tags,
-    required this.keywords,
     this.htmlIdentifier = '',
   });
 
   factory Plugin.fromJson(Map<String, dynamic> json) {
+    // 处理 tags 字段
+    Map<String, tagParser> tagsMap = {};
+    if (json['tags'] != null && json['tags'] is Map) {
+      (json['tags'] as Map).forEach((key, value) {
+        if (value is Map<String, dynamic>) {
+          tagsMap[key] = tagParser.fromJson(value);
+        }
+      });
+    }
+
     return Plugin(
-      api: json['api'],
-      type: json['type'],
-      name: json['name'],
-      version: json['version'],
-      muliSources: json['muliSources'],
-      useWebview: json['useWebview'],
-      useNativePlayer: json['useNativePlayer'],
+      api: json['api'] ?? '',
+      type: json['type'] ?? '',
+      name: json['name'] ?? '',
+      version: json['version'] ?? '',
+      muliSources: json['muliSources'] ?? true,
+      useWebview: json['useWebview'] ?? true,
+      useNativePlayer: json['useNativePlayer'] ?? false,
       usePost: json['usePost'] ?? false,
       useLegacyParser: json['useLegacyParser'] ?? false,
       reloadWithWeb: json['reloadWithWeb'] ?? false,
-      userAgent: json['userAgent'],
+      userAgent: json['userAgent'] ?? '',
       cookie: json['cookie'] ?? '',
-      baseUrl: json['baseURL'],
-      searchURL: json['searchURL'],
-      searchList: json['searchList'],
-      searchName: json['searchName'],
+      baseUrl: json['baseURL'] ?? '',
+      searchURL: json['searchURL'] ?? '',
+      searchList: json['searchList'] ?? '',
+      searchName: json['searchName'] ?? '',
       searchImg: json['searchImg'] ?? '',
-      searchResult: json['searchResult'],
-      chapterRoads: json['chapterRoads'],
+      searchResult: json['searchResult'] ?? '',
+      chapterRoads: json['chapterRoads'] ?? '',
       chapterItems: json['chapterItems'] ?? '',
-      chapterResult: json['chapterResult'],
+      chapterResult: json['chapterResult'] ?? '',
       chapterResultName: json['chapterResultName'] ?? '',
       referer: json['referer'] ?? '',
-      tags: Map<String, String>.from(json['tags'] ?? {}),
-      keywords: Map<String, String>.from(json['keywords'] ?? {}),
+      tags: tagsMap,
+      // 使用处理后的 tagsMap
       htmlIdentifier: json['htmlIdentifier'] ?? '',
-    ); // 添加tags字段
+    );
   }
 
   factory Plugin.fromTemplate() {
     return Plugin(
-        api: Api.apiLevel.toString(),
-        type: 'anime',
-        name: '',
-        version: '',
-        muliSources: true,
-        useWebview: true,
-        useNativePlayer: false,
-        usePost: false,
-        useLegacyParser: false,
-        reloadWithWeb: false,
-        userAgent: '',
-        cookie: '',
-        baseUrl: '',
-        searchURL: '',
-        searchList: '',
-        searchName: '',
-        searchImg: '',
-        searchResult: '',
-        chapterRoads: '',
-        chapterItems: '',
-        chapterResult: '',
-        chapterResultName: '',
-        referer: '',
-        tags: {},
-        keywords: {},
-        htmlIdentifier: '');
+      api: Api.apiLevel.toString(),
+      type: 'anime',
+      name: '',
+      version: '',
+      muliSources: true,
+      useWebview: true,
+      useNativePlayer: false,
+      usePost: false,
+      useLegacyParser: false,
+      reloadWithWeb: false,
+      userAgent: '',
+      cookie: '',
+      baseUrl: '',
+      searchURL: '',
+      searchList: '',
+      searchName: '',
+      searchImg: '',
+      searchResult: '',
+      chapterRoads: '',
+      chapterItems: '',
+      chapterResult: '',
+      chapterResultName: '',
+      referer: '',
+      tags: {},
+      // 初始化为空 Map
+      htmlIdentifier: '',
+    );
   }
 
   Map<String, dynamic> toJson() {
+    // 转换 tags 为可序列化的格式
+    Map<String, dynamic> serializedTags = {};
+    tags.forEach((key, value) {
+      serializedTags[key] = value.toJson();
+    });
+
     final Map<String, dynamic> data = <String, dynamic>{};
     data['api'] = api;
     data['type'] = type;
@@ -158,61 +214,54 @@ class Plugin {
     data['chapterResult'] = chapterResult;
     data['chapterResultName'] = chapterResultName;
     data['referer'] = referer;
-    data['tags'] = tags;
-    data['keywords'] = keywords;
+    data['tags'] = serializedTags; // 使用序列化后的 tags
     data['htmlIdentifier'] = htmlIdentifier;
     return data;
   }
 
-  Future<Map<String, String>> queryTags() async {
-    if (tags.isNotEmpty) {
-      final urlPattern = RegExp(r'@url\[(.*?)\]', caseSensitive: false);
-      final xpathPattern = RegExp(
-        r'@xpath\[((?:[^[\]]|\[.*?\])*)\]',
-        caseSensitive: false,
-        multiLine: true,
-      );
+  queryTag(String tagName,{XPathNode? element}) async {
+    final value = tags[tagName];
+    if (value != null) {
+      final url = value.url;
+      final xpath = value.xpath;
 
-      // 使用异步循环处理每个tag
-      await Future.forEach(tags.entries, (entry) async {
-        final key = entry.key;
-        final value = entry.value;
-
+      if(element != null && element.isElement && value.show && value.url == "element") {
+        if (getResultType(xpath) == XPathResultType.attribute) {
+          print(tagName+"1");
+          value.value = element.queryXPath(xpath).attrs.firstOrNull ?? '';
+        } else if (getResultType(xpath) == XPathResultType.text) {
+          print(tagName+"2");
+          value.value = element.queryXPath(xpath).node?.text ?? '';
+        } else {
+          print(tagName+"3");
+          value.value = '';
+        }
+      }else{
         try {
-          final urlMatch = urlPattern.firstMatch(value);
-          final xpathMatch = xpathPattern.firstMatch(value);
-
-          if (urlMatch != null && xpathMatch != null) {
-            final url = urlMatch.group(1)!.trim();
-            final xpath = xpathMatch.group(1)!.trim();
-
-            if (url.isNotEmpty && xpath.isNotEmpty) {
-              final resp = await Request().get(
-                url,
-                options: Options(headers: {'referer': '$baseUrl/'}),
-                shouldRethrow: false,
-                extra: {'customError': ''},
-              );
-              final htmlString = resp.data.toString();
-              final htmlElement = parse(htmlString).documentElement!;
-              if (getResultType(xpath) == XPathResultType.attribute) {
-                keywords[key] =
-                    htmlElement.queryXPath(xpath).attrs.firstOrNull ?? '';
-              } else if (getResultType(xpath) == XPathResultType.text) {
-                keywords[key] = htmlElement.queryXPath(xpath).node?.text ?? '';
-              } else {
-                keywords[key] = '';
-              }
+          if (url.isNotEmpty && xpath.isNotEmpty) {
+            final resp = await Request().get(
+              url,
+              options: Options(headers: {'referer': '$baseUrl/'}),
+              shouldRethrow: false,
+              extra: {'customError': ''},
+            );
+            final htmlString = resp.data.toString();
+            final htmlElement = parse(htmlString).documentElement!;
+            if (getResultType(xpath) == XPathResultType.attribute) {
+              value.value = htmlElement.queryXPath(xpath).attrs.firstOrNull ?? '';
+            } else if (getResultType(xpath) == XPathResultType.text) {
+              value.value = htmlElement.queryXPath(xpath).node?.text ?? '';
+            } else {
+              value.value = '';
             }
           }
         } catch (e) {
-          debugPrint('解析失败 [$key]: ${e.toString()}');
-          keywords[key] = '';
+          debugPrint('解析失败 [$tagName]: ${e.toString()}');
+          value.value = '';
         }
-      });
-    }
+      }
 
-    return keywords;
+    }
   }
 
   String replaceTag(String queryURL) {
@@ -221,20 +270,22 @@ class Plugin {
     // 使用 replaceAllMapped 一次性替换所有匹配项
     queryURL = queryURL.replaceAllMapped(tagPattern, (Match match) {
       final tagName = match.group(1)!.trim(); // 提取标签名并去除两端空格
-      return Uri.encodeComponent(keywords[tagName] ?? ''); // 替换为编码后的值，不存在则返回空
+      queryTag(tagName);
+      return Uri.encodeComponent(
+          tags[tagName]?.value ?? ''); // 替换为编码后的值，不存在则返回空
     });
     return queryURL;
   }
 
   Future<PluginSearchResponse> queryBangumi(String keyword,
       {bool shouldRethrow = false, int page = 1, bool reload = false}) async {
-    await queryTags();
     String queryURL = searchURL.replaceAll('@keyword', keyword);
     if (queryURL.contains('@pagenum')) {
       queryURL =
           queryURL.replaceAll('@pagenum', page > 0 ? page.toString() : '1');
     }
     queryURL = replaceTag(queryURL);
+    print(queryURL);
 
     List<SearchItem> searchItems = [];
 
@@ -308,12 +359,22 @@ class Plugin {
         } else {
           fullImgUrl = element.queryXPath(searchImg).attrs.firstOrNull ?? '';
         }
+
+        Map<String, String> processedTags = Map.fromEntries(
+
+            tags.entries.where((entry) => entry.value.show).map((entry) {
+              // 对每个键值对执行处理函数
+              queryTag(entry.key,element: element);
+              return MapEntry(entry.key, entry.value.value);
+            })
+        );
         SearchItem searchItem = SearchItem(
           name: (element.queryXPath(searchName).node!.text ?? '')
               .replaceAll(RegExp(r'\s+'), ' ') // 将连续空白替换为单个空格
               .trim(), // 去除首尾空格
           img: fullImgUrl ?? '',
           src: element.queryXPath(searchResult).node!.attributes['href'] ?? '',
+          tags: processedTags,
         );
         searchItems.add(searchItem);
         KazumiLogger().log(Level.info,
@@ -385,6 +446,20 @@ class Plugin {
 enum XPathResultType { attribute, text }
 
 XPathResultType getResultType(String xpath) {
-  if (xpath.endsWith('/text()')) return XPathResultType.text;
-  return XPathResultType.attribute;
+  // 1. 优先判断属性节点：匹配 @属性名 或 路径中的@属性（如@id、/div/@class）
+  // 规则：@后紧跟属性名（字母、数字、下划线、连字符），且不在文本或函数参数中
+  if (RegExp(r'^@[\w-]+$').hasMatch(xpath) ||  // 单独的属性（如@href）
+      RegExp(r'/.+?/@[\w-]+').hasMatch(xpath)) {  // 路径中的属性（如//a/@href）
+    return XPathResultType.attribute;
+  }
+
+  // 2. 判断文本节点：匹配各种text()表达式（支持索引和last()）
+  // 如/text()、//text()[1]、/div/p/text()[last()] 等
+  if (RegExp(r'(//|/)text\(\s*(\d+|last\(\))?\s*\)').hasMatch(xpath)) {
+    return XPathResultType.text;
+  }
+
+  // 3. 对于无法明确归类的情况，可根据业务需求返回默认值
+  // （例如视为文本或属性，或抛出异常，这里默认返回文本作为示例）
+  return XPathResultType.text;
 }
