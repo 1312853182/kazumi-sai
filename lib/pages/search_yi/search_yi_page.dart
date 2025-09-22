@@ -16,6 +16,7 @@ import 'package:crypto/crypto.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../bean/appbar/sys_app_bar.dart';
 import '../../bean/widget/error_widget.dart';
+import '../history/history_controller.dart';
 import '../video/video_controller.dart';
 
 class SearchYiPage extends StatefulWidget {
@@ -38,6 +39,7 @@ class _SearchYiPageState extends State<SearchYiPage>
   final PluginsController pluginsController = Modular.get<PluginsController>();
   late TabController tabController;
   late WebYiController webYiController;
+  final HistoryController historyController = Modular.get<HistoryController>();
 
   //分页信息
   final Map<String, int> _currentPages = {}; // 当前页码
@@ -215,32 +217,37 @@ class _SearchYiPageState extends State<SearchYiPage>
                                       String todayDate = DateTime.now()
                                           .toString()
                                           .split(' ')[0];
+
                                       videoPageController.bangumiItem =
-                                          BangumiItem(
-                                        id: _generateUniqueId(searchItem.name),
-                                        type:
-                                            _generateUniqueId(searchItem.name),
-                                        name: searchItem.name,
-                                        nameCn: searchItem.name,
-                                        summary:
-                                            "影片《${searchItem.name}》是通过规则${plugin.name}直接搜索得到。\r无法获取bangumi的数据，但支持除此以外包括追番，观看记录之外的绝大部分功能。",
-                                        airDate: todayDate,
-                                        airWeekday: 0,
-                                        rank: 0,
-                                        images: {
-                                          'small': searchItem.img,
-                                          'grid': searchItem.img,
-                                          'large': searchItem.img,
-                                          'medium': searchItem.img,
-                                          'common': searchItem.img,
-                                        },
-                                        tags: [],
-                                        alias: [],
-                                        ratingScore: 0.0,
-                                        votes: 0,
-                                        votesCount: [],
-                                        info: '',
-                                      );
+                                          historyController.queryBangumiItem(
+                                                  plugin.name,
+                                                  searchItem.name) ??
+                                              BangumiItem(
+                                                id: _generateUniqueId(
+                                                    searchItem.name),
+                                                type: _generateUniqueId(
+                                                    searchItem.name),
+                                                name: searchItem.name,
+                                                nameCn: searchItem.name,
+                                                summary:
+                                                    "影片《${searchItem.name}》是通过规则${plugin.name}直接搜索得到。\r无法获取bangumi的数据，但支持除此以外包括追番，观看记录之外的绝大部分功能。",
+                                                airDate: todayDate,
+                                                airWeekday: 0,
+                                                rank: 0,
+                                                images: {
+                                                  'small': searchItem.img,
+                                                  'grid': searchItem.img,
+                                                  'large': searchItem.img,
+                                                  'medium': searchItem.img,
+                                                  'common': searchItem.img,
+                                                },
+                                                tags: [],
+                                                alias: [],
+                                                ratingScore: 0.0,
+                                                votes: 0,
+                                                votesCount: [],
+                                                info: '',
+                                              );
 
                                       videoPageController.currentPlugin =
                                           plugin;
@@ -458,7 +465,8 @@ class _SearchYiPageState extends State<SearchYiPage>
             onTap: () => _handleImageTap(plugin, resultUrl),
             child: Image.network(
               imgUrl,
-              fit: BoxFit.contain, // 保持原始比例
+              fit: BoxFit.contain,
+              // 保持原始比例
               alignment: Alignment.center,
               cacheWidth: 200,
               cacheHeight: 300,

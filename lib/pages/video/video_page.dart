@@ -3,6 +3,7 @@ import 'package:canvas_danmaku/models/danmaku_content_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:kazumi/bean/appbar/sys_app_bar.dart';
+import 'package:kazumi/pages/player/details_info.dart';
 import 'package:kazumi/pages/player/player_controller.dart';
 import 'package:kazumi/pages/video/video_controller.dart';
 import 'package:kazumi/pages/webview/webview_item.dart';
@@ -77,7 +78,7 @@ class _VideoPageState extends State<VideoPage>
     // Check fullscreen when enter video page
     // in case user use system controls to enter fullscreen outside video page
     videoPageController.isDesktopFullscreen();
-    tabController = TabController(length: 2, vsync: this);
+    tabController = TabController(length: 3, vsync: this);
     observerController = GridObserverController(controller: scrollController);
     animation = AnimationController(
       duration: const Duration(milliseconds: 120),
@@ -103,7 +104,8 @@ class _VideoPageState extends State<VideoPage>
     videoPageController.showTabBody = true;
     playResume = setting.get(SettingBoxKey.playResume, defaultValue: true);
     var progress = historyController.lastWatching(
-        videoPageController.bangumiItem, videoPageController.currentPlugin.name);
+        videoPageController.bangumiItem,
+        videoPageController.currentPlugin.name);
     if (progress != null) {
       if (videoPageController.roadList.length > progress.road) {
         if (videoPageController.roadList[progress.road].data.length >=
@@ -672,23 +674,23 @@ class _VideoPageState extends State<VideoPage>
             consumeOutsideTap: true,
             builder: (_, MenuController controller, __) {
               return SizedBox(
-            height: 34,
-            child: TextButton(
-              style: ButtonStyle(
-                padding: WidgetStateProperty.all(EdgeInsets.zero),
-              ),
-              onPressed: () {
+                height: 34,
+                child: TextButton(
+                  style: ButtonStyle(
+                    padding: WidgetStateProperty.all(EdgeInsets.zero),
+                  ),
+                  onPressed: () {
                     if (controller.isOpen) {
                       controller.close();
                     } else {
                       controller.open();
                     }
-              },
-              child: Text(
-                '播放列表${currentRoad + 1} ',
-                style: const TextStyle(fontSize: 13),
-              ),
-            ),
+                  },
+                  child: Text(
+                    '播放列表${currentRoad + 1} ',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
               );
             },
             menuChildren: List<MenuItemButton>.generate(
@@ -828,7 +830,7 @@ class _VideoPageState extends State<VideoPage>
     return Container(
       color: Theme.of(context).canvasColor,
       child: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -840,7 +842,7 @@ class _VideoPageState extends State<VideoPage>
                   isScrollable: true,
                   tabAlignment: TabAlignment.start,
                   labelPadding:
-                      const EdgeInsetsDirectional.only(start: 30, end: 30),
+                      const EdgeInsetsDirectional.only(start: 20, end: 10),
                   onTap: (index) {
                     if (index == 0) {
                       menuJumpToCurrentEpisode();
@@ -849,6 +851,7 @@ class _VideoPageState extends State<VideoPage>
                   tabs: const [
                     Tab(text: '选集'),
                     Tab(text: '评论'),
+                    Tab(text: '详情'),
                   ],
                 ),
                 if (MediaQuery.sizeOf(context).width <=
@@ -953,6 +956,7 @@ class _VideoPageState extends State<VideoPage>
                     episode: episodeNum,
                     child: EpisodeCommentsSheet(),
                   ),
+                  DetailsCommentsSheet()
                 ],
               ),
             ),
